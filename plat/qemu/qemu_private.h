@@ -36,4 +36,7 @@ int dt_add_psci_cpu_enable_methods(void *fdt);
 
 void qemu_console_init(void);
 
+void plat_qemu_gic_init(void);
+void qemu_pwr_gic_on_finish(void);
+
 #endif /*__QEMU_PRIVATE_H*/

@@ -7,10 +7,10 @@
 #include <arch_helpers.h>
 #include <assert.h>
 #include <debug.h>
-#include <gicv2.h>
 #include <platform.h>
 #include <platform_def.h>
 #include <psci.h>
+#include "qemu_private.h"
 
 /*
  * The secure entry point to be used on warm reset.
@@ -171,11 +171,7 @@ void qemu_pwr_domain_on_finish(const psci_power_state_t *target_state)
 	assert(target_state->pwr_domain_state[MPIDR_AFFLVL0] ==
 					PLAT_LOCAL_STATE_OFF);
 
-	/* TODO: This setup is needed only after a cold boot */
-	gicv2_pcpu_distif_init();
-
-	/* Enable the gic cpu interface */
-	gicv2_cpuif_enable();
+	qemu_pwr_gic_on_finish();
 }
 
 /*******************************************************************************

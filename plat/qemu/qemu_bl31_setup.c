@@ -6,9 +6,6 @@
 
 #include <assert.h>
 #include <bl_common.h>
-#include <gic_common.h>
-#include <gicv2.h>
-#include <platform_def.h>
 #include "qemu_private.h"
 
 /*
@@ -110,49 +107,9 @@ void bl31_plat_arch_setup(void)
 			      BL_COHERENT_RAM_BASE, BL_COHERENT_RAM_END);
 }
 
-/******************************************************************************
- * On a GICv2 system, the Group 1 secure interrupts are treated as Group 0
- * interrupts.
- *****************************************************************************/
-#define PLATFORM_G1S_PROPS(grp)						\
-	INTR_PROP_DESC(QEMU_IRQ_SEC_SGI_0, GIC_HIGHEST_SEC_PRIORITY,	\
-					   grp, GIC_INTR_CFG_EDGE),	\
-	INTR_PROP_DESC(QEMU_IRQ_SEC_SGI_1, GIC_HIGHEST_SEC_PRIORITY,	\
-					   grp, GIC_INTR_CFG_EDGE),	\
-	INTR_PROP_DESC(QEMU_IRQ_SEC_SGI_2, GIC_HIGHEST_SEC_PRIORITY,	\
-					   grp, GIC_INTR_CFG_EDGE),	\
-	INTR_PROP_DESC(QEMU_IRQ_SEC_SGI_3, GIC_HIGHEST_SEC_PRIORITY,	\
-					   grp, GIC_INTR_CFG_EDGE),	\
-	INTR_PROP_DESC(QEMU_IRQ_SEC_SGI_4, GIC_HIGHEST_SEC_PRIORITY,	\
-					   grp, GIC_INTR_CFG_EDGE),	\
-	INTR_PROP_DESC(QEMU_IRQ_SEC_SGI_5, GIC_HIGHEST_SEC_PRIORITY,	\
-					   grp, GIC_INTR_CFG_EDGE),	\
-	INTR_PROP_DESC(QEMU_IRQ_SEC_SGI_6, GIC_HIGHEST_SEC_PRIORITY,	\
-					   grp, GIC_INTR_CFG_EDGE),	\
-	INTR_PROP_DESC(QEMU_IRQ_SEC_SGI_7, GIC_HIGHEST_SEC_PRIORITY,	\
-					   grp, GIC_INTR_CFG_EDGE)
-
-#define PLATFORM_G0_PROPS(grp)
-
-static const interrupt_prop_t qemu_interrupt_props[] = {
-	PLATFORM_G1S_PROPS(GICV2_INTR_GROUP0),
-	PLATFORM_G0_PROPS(GICV2_INTR_GROUP0)
-};
-
-static const struct gicv2_driver_data plat_gicv2_driver_data = {
-	.gicd_base = GICD_BASE,
-	.gicc_base = GICC_BASE,
-	.interrupt_props = qemu_interrupt_props,
-	.interrupt_props_num = ARRAY_SIZE(qemu_interrupt_props),
-};
-
 void bl31_platform_setup(void)
 {
-	/* Initialize the gic cpu and distributor interfaces */
-	gicv2_driver_init(&plat_gicv2_driver_data);
-	gicv2_distif_init();
-	gicv2_pcpu_distif_init();
-	gicv2_cpuif_enable();
+	plat_qemu_gic_init();
 }
 
 unsigned int plat_get_syscnt_freq2(void)
