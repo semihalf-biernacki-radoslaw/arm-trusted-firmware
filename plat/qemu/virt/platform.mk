@@ -35,9 +35,11 @@ ifeq ($(NEED_BL32),yes)
 $(eval $(call add_define,QEMU_LOAD_BL32))
 endif
 
-PLAT_PATH               :=      plat/qemu/
+PLAT_QEMU_PATH               :=      plat/qemu/virt
+PLAT_QEMU_COMMON_PATH        :=      plat/qemu/common
 PLAT_INCLUDES		:=	-Iinclude/plat/arm/common/		\
-				-Iplat/qemu/include			\
+				-I${PLAT_QEMU_COMMON_PATH}/include			\
+				-I${PLAT_QEMU_PATH}/include			\
 				-Iinclude/common/tbbr
 
 ifeq (${ARM_ARCH_MAJOR},8)
@@ -50,9 +52,9 @@ $(eval $(call assert_boolean,ARM_XLAT_TABLES_LIB_V1))
 $(eval $(call add_define,ARM_XLAT_TABLES_LIB_V1))
 
 
-PLAT_BL_COMMON_SOURCES	:=	plat/qemu/qemu_common.c			  \
-				plat/qemu/qemu_console.c		  \
-				drivers/arm/pl011/${ARCH}/pl011_console.S \
+PLAT_BL_COMMON_SOURCES	:=	${PLAT_QEMU_COMMON_PATH}/qemu_common.c			\
+				${PLAT_QEMU_COMMON_PATH}/qemu_console.c		  \
+				drivers/arm/pl011/${ARCH}/pl011_console.S
 
 ifeq (${ARM_XLAT_TABLES_LIB_V1}, 1)
 PLAT_BL_COMMON_SOURCES	+=	lib/xlat_tables/xlat_tables_common.c		\
@@ -80,13 +82,13 @@ ifneq (${TRUSTED_BOARD_BOOT},0)
     BL1_SOURCES		+=	${AUTH_SOURCES}				\
 				bl1/tbbr/tbbr_img_desc.c		\
 				plat/common/tbbr/plat_tbbr.c		\
-				plat/qemu/qemu_trusted_boot.c	     	\
-				$(PLAT_PATH)/qemu_rotpk.S
+				${PLAT_QEMU_COMMON_PATH}/qemu_trusted_boot.c	     	\
+				$(PLAT_QEMU_COMMON_PATH)/qemu_rotpk.S
 
     BL2_SOURCES		+=	${AUTH_SOURCES}				\
 				plat/common/tbbr/plat_tbbr.c		\
-				plat/qemu/qemu_trusted_boot.c	     	\
-				$(PLAT_PATH)/qemu_rotpk.S
+				${PLAT_QEMU_COMMON_PATH}/qemu_trusted_boot.c	     	\
+				$(PLAT_QEMU_COMMON_PATH)/qemu_rotpk.S
 
     ROT_KEY             = $(BUILD_PLAT)/rot_key.pem
     ROTPK_HASH          = $(BUILD_PLAT)/rotpk_sha256.bin
@@ -114,9 +116,9 @@ BL1_SOURCES		+=	drivers/io/io_semihosting.c		\
 				drivers/io/io_memmap.c			\
 				lib/semihosting/semihosting.c		\
 				lib/semihosting/${ARCH}/semihosting_call.S \
-				plat/qemu/qemu_io_storage.c		\
-				plat/qemu/${ARCH}/plat_helpers.S	\
-				plat/qemu/qemu_bl1_setup.c
+				${PLAT_QEMU_COMMON_PATH}/qemu_io_storage.c		\
+				${PLAT_QEMU_COMMON_PATH}/${ARCH}/plat_helpers.S	\
+				${PLAT_QEMU_COMMON_PATH}/qemu_bl1_setup.c
 
 ifeq (${ARM_ARCH_MAJOR},8)
 BL1_SOURCES		+=	lib/cpus/aarch64/aem_generic.S		\
@@ -132,14 +134,14 @@ BL2_SOURCES		+=	drivers/io/io_semihosting.c		\
 				drivers/io/io_memmap.c			\
 				lib/semihosting/semihosting.c		\
 				lib/semihosting/${ARCH}/semihosting_call.S\
-				plat/qemu/qemu_io_storage.c		\
-				plat/qemu/${ARCH}/plat_helpers.S	\
-				plat/qemu/qemu_bl2_setup.c		\
-				plat/qemu/dt.c				\
+				${PLAT_QEMU_COMMON_PATH}/qemu_io_storage.c		\
+				${PLAT_QEMU_COMMON_PATH}/${ARCH}/plat_helpers.S	\
+				${PLAT_QEMU_COMMON_PATH}/qemu_bl2_setup.c		\
+				${PLAT_QEMU_COMMON_PATH}/dt.c				\
 				$(LIBFDT_SRCS)
 ifeq (${LOAD_IMAGE_V2},1)
-BL2_SOURCES		+=	plat/qemu/qemu_bl2_mem_params_desc.c	\
-				plat/qemu/qemu_image_load.c		\
+BL2_SOURCES		+=	${PLAT_QEMU_COMMON_PATH}/qemu_bl2_mem_params_desc.c	\
+				${PLAT_QEMU_COMMON_PATH}/qemu_image_load.c		\
 				common/desc_image_load.c
 endif
 ifeq ($(add-lib-optee),yes)
@@ -150,13 +152,13 @@ QEMU_GICV2_SOURCES	:=	drivers/arm/gic/v2/gicv2_helpers.c	\
 				drivers/arm/gic/v2/gicv2_main.c		\
 				drivers/arm/gic/common/gic_common.c	\
 				plat/common/plat_gicv2.c		\
-				plat/qemu/qemu_gicv2.c
+				${PLAT_QEMU_COMMON_PATH}/qemu_gicv2.c
 
 QEMU_GICV3_SOURCES	:=	drivers/arm/gic/v3/gicv3_helpers.c	\
 				drivers/arm/gic/v3/gicv3_main.c		\
 				drivers/arm/gic/common/gic_common.c	\
 				plat/common/plat_gicv3.c		\
-				plat/qemu/qemu_gicv3.c
+				${PLAT_QEMU_COMMON_PATH}/qemu_gicv3.c
 
 ifeq (${QEMU_USE_GIC_DRIVER}, QEMU_GICV2)
 QEMU_GIC_SOURCES	:=	${QEMU_GICV2_SOURCES}
@@ -171,10 +173,10 @@ BL31_SOURCES		+=	lib/cpus/aarch64/aem_generic.S		\
 				lib/cpus/aarch64/cortex_a53.S		\
 				lib/cpus/aarch64/cortex_a57.S		\
 				plat/common/plat_psci_common.c		\
-				plat/qemu/qemu_pm.c			\
-				plat/qemu/topology.c			\
-				plat/qemu/aarch64/plat_helpers.S	\
-				plat/qemu/qemu_bl31_setup.c		\
+				${PLAT_QEMU_COMMON_PATH}/qemu_pm.c			\
+				${PLAT_QEMU_COMMON_PATH}/topology.c			\
+				${PLAT_QEMU_COMMON_PATH}/aarch64/plat_helpers.S	\
+				${PLAT_QEMU_COMMON_PATH}/qemu_bl31_setup.c		\
 				${QEMU_GIC_SOURCES}
 endif
 
@@ -190,7 +192,7 @@ endif
 SEPARATE_CODE_AND_RODATA := 1
 ENABLE_STACK_PROTECTOR	 := 0
 ifneq ($(ENABLE_STACK_PROTECTOR), 0)
-	PLAT_BL_COMMON_SOURCES += plat/qemu/qemu_stack_protector.c
+	PLAT_BL_COMMON_SOURCES += ${PLAT_QEMU_COMMON_PATH}/qemu_stack_protector.c
 endif
 
 # Use MULTI_CONSOLE_API by default only on AArch64

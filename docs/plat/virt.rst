@@ -35,7 +35,7 @@ To build:
 
 ::
 
-    make CROSS_COMPILE=aarch64-none-elf- PLAT=qemu 
+    make CROSS_COMPILE=aarch64-none-elf- PLAT=virt
 
 To start (QEMU v2.6.0):
 
